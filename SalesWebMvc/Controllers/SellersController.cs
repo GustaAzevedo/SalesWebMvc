@@ -30,6 +30,7 @@ namespace SalesWebMvc.Controllers
 
         public IActionResult Create()
         {
+           
             var departments = _departmentService.FindAll();
             var viewModel = new SellerFormViewModel { Departments = departments };
             return View(viewModel);
@@ -39,19 +40,27 @@ namespace SalesWebMvc.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Seller seller)
         {
+            if (!ModelState.IsValid)
+            {
+                List<Department> departments = _departmentService.FindAll();
+                SellerFormViewModel viewModel = new SellerFormViewModel { Seller = seller, Departments = departments };
+                return View(viewModel);
+            }
+
+
             _sellerService.Insert(seller);
             return RedirectToAction(nameof(Index));
         }
 
         public IActionResult Delete(int? id)
         {
-            if(id == null)
+            if (id == null)
             {
                 return RedirectToAction(nameof(Error), new { msg = "Id not provided" });
             }
 
             var obj = _sellerService.FindById(id.Value);
-            if(obj == null)
+            if (obj == null)
             {
                 return RedirectToAction(nameof(Error), new { msg = "Id not found" });
             }
@@ -87,7 +96,8 @@ namespace SalesWebMvc.Controllers
 
         public IActionResult Edit(int? id)
         {
-            if(id == null)
+
+            if (id == null)
             {
                 return RedirectToAction(nameof(Error), new { msg = "Id not provided" });
             }
@@ -107,7 +117,16 @@ namespace SalesWebMvc.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, Seller seller)
         {
-            if(id != seller.Id)
+
+            if (!ModelState.IsValid)
+            {
+                List<Department> departments = _departmentService.FindAll();
+                SellerFormViewModel viewModel = new SellerFormViewModel { Seller = seller, Departments = departments };
+                return View(viewModel);
+            }
+
+
+            if (id != seller.Id)
             {
                 return RedirectToAction(nameof(Error), new { msg = "Id mismatch" });
             }
@@ -116,7 +135,7 @@ namespace SalesWebMvc.Controllers
                 _sellerService.Update(seller);
                 return RedirectToAction(nameof(Index));
             }
-            catch ( ApplicationException e)
+            catch (ApplicationException e)
             {
                 return RedirectToAction(nameof(Error), new { msg = e.Message });
             }
